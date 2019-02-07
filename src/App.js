@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Route } from "react-router-dom";
+import { Route, Redirect } from "react-router-dom";
 import Home from "./Home";
 import Profile from "./Profile";
 import Nav from "./Nav";
@@ -16,7 +16,7 @@ class App extends Component {
     // <> e </> are fragment for <React.Fragment>
     return (
       <>
-        <Nav />
+        <Nav auth={this.auth} />
         <div className="body">
           <Route
             path="/"
@@ -27,11 +27,17 @@ class App extends Component {
             path="/callback"
             render={props => <Callback auth={this.auth} {...props} />}
           />
-          {/* <Route
+          <Route
             path="/profile"
-            render={props => <Profile auth={this.auth} {...props} />}
-          /> */}
-          <Route path="/profile" component={Profile} />
+            render={props =>
+              this.auth.isAuthenticated() ? (
+                <Profile auth={this.auth} {...props} />
+              ) : (
+                <Redirect to="/" />
+              )
+            }
+          />
+          {/* <Route path="/profile" component={Profile} /> */}
         </div>
       </>
     );
