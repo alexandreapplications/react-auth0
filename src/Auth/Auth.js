@@ -54,11 +54,12 @@ export default class Auth {
   setSession = authResult => {
     // Set the time that the access token will expire
     // Calculating unix epoque date it will exprire
-    this._expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
-    this._scopes = authResult.scope || this.requestedScopes || "";
+    _expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
+    _scopes = authResult.scope || this.requestedScopes || "";
 
-    this._accessToken = authResult.accessToken;
-    this._idToken = authResult.idToken;
+    _accessToken = authResult.accessToken;
+    _idToken = authResult.idToken;
+    this.scheduleTokenRenewal();
   };
 
   isAuthenticated() {
@@ -94,5 +95,24 @@ export default class Auth {
   userHasScopes(scopes) {
     const grantedScopes = (_scopes || "").split(" ");
     return scopes.every(scope => grantedScopes.includes(scope));
+  }
+
+  renewToken(cb) {
+    this.auth0.checkSession({}, (err, result) => {
+      if (err) {
+        console.log(`Error: ${err.error} - ${err.error_description}.`);
+      } else {
+        this.setSession(result);
+      }
+      if (cb) cb(err, result);
+    });
+  }
+
+  scheduleTokenRenewal() {
+    const delay = _expiresAt - Date.now();
+    if (delay > 0)
+      setTimeout(() => {
+        this.renewToken();
+      }, delay);
   }
 }
